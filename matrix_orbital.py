@@ -88,18 +88,18 @@ class MatrixOrbitalLCD(EventPlugin):
             self._disc_info_row_2 = ""
 
             if album != None:
-                if len(album) <= self._max_width:
-                    self._disc_info_row_1 = album
-                else:
-                    self._disc_info_row_1 = album[0:self._max_width - 3] + "..."
+                tlalbum = unidecode(album)
+                if len(tlalbum) > self._max_width:
+                    tlalbum = tlalbum[0:self._max_width - 3] + "..."
+                self._disc_info_row_1 = tlalbum
 
-            separator = ""
             if discnumber != None:
-                self._disc_info_row_2 = "Disc " + discnumber
-                separator = ", "
+                self._disc_info_row_2 = \
+                    ("Disc " + unidecode(discnumber) + " ").ljust(9)
 
             if tracknumber != None:
-                self._disc_info_row_2 += separator + "Track " + tracknumber
+                self._disc_info_row_2 += ("Track " + unidecode(tracknumber)) \
+                    .rjust(self._max_width - len(self._disc_info_row_2))
 
         def reset(self):
 
