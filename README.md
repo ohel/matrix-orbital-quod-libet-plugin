@@ -11,10 +11,15 @@ The picture is from a computer case equipped with an LK202 display, showing arti
 ## Requirements
 
 * A Matrix Orbital LCD display. Probably works with several different models, tested using LK202. Supports two rows. Column count is configurable, as is the serial TTY device location.
+    * The LCD serial device must be writable and set up correctly.
+    * To set up the LCD device:
+        1. load the usbserial and ftdi-sio kernel modules
+        2. set up the TTY with correct speed, e.g. `/bin/stty -F /dev/serial/matrix_orbital speed 19200 -onlcr`
+        3. make the device writeable by the Quod Libet user (or by all)
 * Developed against Quod Libet 4.x. Might work on earlier versions.
 * Written in Python 3, will not work with Python 2.
 * The plugin uses the Unidecode module for transliterations.
 
 ## Installation
 
-Copy the plugin into `~/.quodlibet/plugins/events/`. Enable write access to `/dev/ttyUSB0` or wherever the display is located. Configure the location for the plugin.
+Copy the plugin into `~/.quodlibet/plugins/events/`. Configure the serial device location for the plugin in Quod Libet.

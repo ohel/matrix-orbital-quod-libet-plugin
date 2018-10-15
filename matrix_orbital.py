@@ -1,3 +1,21 @@
+# Matrix Orbital LCD display plugin for Quod Libet media player.
+# Prints information about currently playing song.
+# Supports models from MX2/MX3 series (LK202); probably many others, too.
+#
+# Installation: place this file into ~/.quodlibet/plugins/events
+# Prerequisites: Python 3, Unidecode module, Quod Libet
+# The LCD serial device must be writable and set up correctly.
+#
+# To set up the LCD device:
+# 1. load the usbserial and ftdi-sio kernel modules
+# 2. set up the TTY with correct speed, e.g.
+#    /bin/stty -F /dev/serial/matrix_orbital speed 19200 -onlcr
+#
+# Copyright 2018 Olli Helin
+#
+# This software is released under the terms of the
+# GNU General Public License v3: http://www.gnu.org/licenses/gpl-3.0.en.html
+
 from enum import Enum
 from gi.repository import Gtk
 from math import floor
@@ -357,9 +375,9 @@ class MatrixOrbitalLCD(EventPlugin):
         self._reset_lcd()
 
         # Ready horizontal bars.
-        self._dev.write(b"\xFE\x68")
+        self._dev.write(b"\xFEh")
         # Turn backlight on.
-        self._dev.write(b"\xFE\x42\x00")
+        self._dev.write(b"\xFEB\x00")
 
         self._write_header()
 
@@ -376,7 +394,7 @@ class MatrixOrbitalLCD(EventPlugin):
         self._reset_lcd()
 
         # Turn backlight off.
-        self._dev.write(b"\xFEX\xFE\x48\xFE\x46")
+        self._dev.write(b"\xFEF")
 
     def plugin_on_seek(self, song, msec):
 
