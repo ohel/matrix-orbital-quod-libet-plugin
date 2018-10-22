@@ -23,7 +23,7 @@ msgstr "Haetaan..."
 msgid "* now playing *"
 msgstr "* toistetaan *"
 
-msgid "* stopped *"
+msgid "* not playing *"
 msgstr "* ei toistoa *"
 
 msgid "* paused *"

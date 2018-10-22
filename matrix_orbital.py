@@ -177,7 +177,7 @@ class NowPlayingLCDData(object):
 
             if (self._force_refresh):
                 self._force_refresh = False
-                self._parent._reset_lcd()
+                self._parent.reset_lcd()
                 self._refresh_info()
 
             if (self._tick_count > self._ticks_in_phase):
@@ -200,7 +200,7 @@ class NowPlayingLCDData(object):
 
             if self._force_refresh:
                 self._force_refresh = False
-                self._parent._reset_lcd()
+                self._parent.reset_lcd()
 
             if self._scroll_a > -1:
                 self._scroll_a += 1
@@ -224,7 +224,7 @@ class NowPlayingLCDData(object):
 
             if self._force_refresh:
                 self._force_refresh = False
-                self._parent._reset_lcd()
+                self._parent.reset_lcd()
                 self._refresh_disc_info()
 
             if self._tick_count > self._ticks_in_phase:
@@ -232,13 +232,13 @@ class NowPlayingLCDData(object):
 
             return
 
-        # Display disc info.
+        # Display generic status.
         if self._phase == Phase.HEADER_INFO:
 
             if self._force_refresh:
                 self._force_refresh = False
-                self._parent._reset_lcd()
-                self._parent._write_header_with_text(_("* now playing *"))
+                self._parent.reset_lcd()
+                self._parent.write_header_with_text(_("* now playing *"))
 
             if self._tick_count > self._ticks_in_phase / 2:
                 self._advance_phase()
@@ -258,7 +258,7 @@ class NowPlayingLCDData(object):
         self._write_text(self._disc_info_row_1, None, Alignment.TOP)
         self._write_text(self._disc_info_row_2, None, Alignment.BOTTOM)
 
-    def _refresh_info(self, artist=True, title=True, disc_info=False):
+    def _refresh_info(self, artist=True, title=True):
 
         if artist:
             self._write_text(self._artist, self._scroll_a, Alignment.TOP)
@@ -294,18 +294,18 @@ class MatrixOrbitalLCD(EventPlugin):
 
         return alignment + bytes(text, "utf8")
 
-    def write_bytes(self, text):
-
-        self._dev.write(text)
-
-    def _reset_lcd(self):
+    def reset_lcd(self):
 
         # Empty LCD screen (X) and send cursor home (H).
         self.write_bytes(b"\xFEX\xFEH")
 
-    def _write_header_with_text(self, text=""):
+    def write_bytes(self, text):
 
-        self._reset_lcd()
+        self._dev.write(text)
+
+    def write_header_with_text(self, text=""):
+
+        self.reset_lcd()
         self._write_header()
         self.write_bytes(
             self.align_text2bytes(text, Alignment.CENTER, Alignment.BOTTOM))
@@ -385,7 +385,7 @@ class MatrixOrbitalLCD(EventPlugin):
             print_e("Matrix Orbital LCD device not found at " + CONFIG.lcd_dev)
             return
 
-        self._reset_lcd()
+        self.reset_lcd()
 
         # Ready horizontal bars.
         self.write_bytes(b"\xFEh")
@@ -405,7 +405,7 @@ class MatrixOrbitalLCD(EventPlugin):
             return
 
         self._tracker.destroy()
-        self._reset_lcd()
+        self.reset_lcd()
 
         # Turn backlight off.
         self.write_bytes(b"\xFEF")
@@ -415,7 +415,7 @@ class MatrixOrbitalLCD(EventPlugin):
         if self._failed_initialization():
             return
 
-        self._reset_lcd()
+        self.reset_lcd()
         self._npld.prevent_update(1)
 
         self._write_header(_("Seeking..."))
@@ -435,7 +435,7 @@ class MatrixOrbitalLCD(EventPlugin):
         self._npld.set_basic_info(song("artist"), song("title"))
         self._npld.set_disc_info(song("album"),
             song.get("discnumber"), song.get("tracknumber"))
-        self._reset_lcd()
+        self.reset_lcd()
 
     def plugin_on_song_ended(self, song, stopped):
 
@@ -443,7 +443,7 @@ class MatrixOrbitalLCD(EventPlugin):
             return
 
         self._npld.reset()
-        self._write_header_with_text(_("* stopped *"))
+        self.write_header_with_text(_("* not playing *"))
 
     def plugin_on_paused(self):
 
@@ -451,7 +451,7 @@ class MatrixOrbitalLCD(EventPlugin):
             return
 
         # No need to set pause for trackers manually.
-        self._write_header_with_text(_("* paused *"))
+        self.write_header_with_text(_("* paused *"))
 
     def plugin_on_unpaused(self):
 
