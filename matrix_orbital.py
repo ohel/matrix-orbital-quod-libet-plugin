@@ -27,6 +27,7 @@ from quodlibet.qltk.tracker import TimeTracker
 from quodlibet.util import print_e
 from unidecode import unidecode
 
+
 class Config(object):
 
     _config = PluginConfig(__name__)
@@ -35,6 +36,7 @@ class Config(object):
     lcd_interval = ConfProp(_config, "lcd_interval", 150)
 
 CONFIG = Config()
+
 
 class MatrixOrbitalLCD(EventPlugin):
 
@@ -87,17 +89,17 @@ class MatrixOrbitalLCD(EventPlugin):
             self._disc_info_row_1 = ""
             self._disc_info_row_2 = ""
 
-            if album != None:
+            if album is not None:
                 tlalbum = unidecode(album)
                 if len(tlalbum) > self._max_width:
                     tlalbum = tlalbum[0:self._max_width - 3] + "..."
                 self._disc_info_row_1 = tlalbum
 
-            if discnumber != None:
+            if discnumber is not None:
                 self._disc_info_row_2 = \
                     ("Disc " + unidecode(discnumber) + " ").ljust(9)
 
-            if tracknumber != None:
+            if tracknumber is not None:
                 self._disc_info_row_2 += ("Track " + unidecode(tracknumber)) \
                     .rjust(self._max_width - len(self._disc_info_row_2))
 
@@ -155,8 +157,8 @@ class MatrixOrbitalLCD(EventPlugin):
 
         def on_tracker_tick(self, tracker):
 
-            if (self._artist == None or
-                self._title == None or
+            if (self._artist is None or
+                self._title is None or
                 self._skip_ticks < 0):
                 return
 
@@ -246,19 +248,19 @@ class MatrixOrbitalLCD(EventPlugin):
 
         def _write_text(self, text, scroll, v_align):
 
-            if scroll != None and scroll > 0:
+            if scroll is not None and scroll > 0:
                 text = (text[scroll:] + text)
             text = text[0:self._max_width]
             self._parent._dev.write(self._parent._align_text(text,
                 self._parent._Alignment.LEFT, v_align))
 
-        def _refresh(self, artist = True, title = True, disc_info = False):
+        def _refresh(self, artist=True, title=True, disc_info=False):
 
             if disc_info:
                 self._write_text(
                     self._disc_info_row_1, None, self._parent._Alignment.TOP)
-                self._write_text(
-                    self._disc_info_row_2, None, self._parent._Alignment.BOTTOM)
+                self._write_text(self._disc_info_row_2,
+                    None, self._parent._Alignment.BOTTOM)
                 return
 
             if artist:
@@ -266,11 +268,11 @@ class MatrixOrbitalLCD(EventPlugin):
                     self._artist, self._scroll_a, self._parent._Alignment.TOP)
 
             if title:
-                self._write_text(
-                    self._title, self._scroll_t, self._parent._Alignment.BOTTOM)
+                self._write_text(self._title, self._scroll_t,
+                    self._parent._Alignment.BOTTOM)
 
     def _align_text(self, text,
-        h_align = _Alignment.CENTER, v_align = _Alignment.TOP):
+        h_align=_Alignment.CENTER, v_align=_Alignment.TOP):
 
         if (h_align == self._Alignment.LEFT):
             index = 1
@@ -293,14 +295,14 @@ class MatrixOrbitalLCD(EventPlugin):
         # Empty LCD screen (X) and send cursor home (H).
         self._dev.write(b"\xFEX\xFEH")
 
-    def _write_header_with_text(self, text = ""):
+    def _write_header_with_text(self, text=""):
 
         self._reset_lcd()
         self._write_header()
         self._dev.write(self._align_text(text,
             self._Alignment.CENTER, self._Alignment.BOTTOM))
 
-    def _write_header(self, header = "Quod Libet"):
+    def _write_header(self, header="Quod Libet"):
 
         self._dev.write(self._align_text(header))
 
@@ -363,11 +365,10 @@ class MatrixOrbitalLCD(EventPlugin):
             return True
         return False
 
-
     def enabled(self):
 
         try:
-            self._dev = open(CONFIG.lcd_dev, 'wb', buffering = 0)
+            self._dev = open(CONFIG.lcd_dev, 'wb', buffering=0)
         except:
             print_e("Matrix Orbital LCD device not found at " + CONFIG.lcd_dev)
             return
@@ -388,7 +389,8 @@ class MatrixOrbitalLCD(EventPlugin):
 
     def disabled(self):
 
-        if self._failed_initialization(): return
+        if self._failed_initialization():
+            return
 
         self._tracker.destroy()
         self._reset_lcd()
@@ -398,7 +400,8 @@ class MatrixOrbitalLCD(EventPlugin):
 
     def plugin_on_seek(self, song, msec):
 
-        if self._failed_initialization(): return
+        if self._failed_initialization():
+            return
 
         self._reset_lcd()
         self._npld.prevent_update(1)
@@ -413,8 +416,8 @@ class MatrixOrbitalLCD(EventPlugin):
 
     def plugin_on_song_started(self, song):
 
-        if self._failed_initialization(): return
-        if type(song) == type(None): return
+        if self._failed_initialization() or song is None:
+            return
 
         self._npld.reset()
         self._npld.set_basic_info(song("artist"), song("title"))
@@ -424,20 +427,23 @@ class MatrixOrbitalLCD(EventPlugin):
 
     def plugin_on_song_ended(self, song, stopped):
 
-        if self._failed_initialization(): return
+        if self._failed_initialization():
+            return
 
         self._npld.reset()
         self._write_header_with_text("* stopped *")
 
     def plugin_on_paused(self):
 
-        if self._failed_initialization(): return
+        if self._failed_initialization():
+            return
 
         # No need to set pause for trackers manually.
         self._write_header_with_text("* paused *")
 
     def plugin_on_unpaused(self):
 
-        if self._failed_initialization(): return
+        if self._failed_initialization():
+            return
 
         self._npld.set_forced_update()
