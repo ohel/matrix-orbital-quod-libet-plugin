@@ -1,24 +1,28 @@
+# -*- coding: utf-8 -*-
+# Copyright 2018 Olli Helin
+#
 # Matrix Orbital LCD display plugin for Quod Libet media player.
 # Prints information about currently playing song.
 # Supports models from MX2/MX3 series (LK202); probably many others, too.
 #
-# Installation: place this file into ~/.quodlibet/plugins/events
-# Prerequisites: Python 3, Unidecode module, Quod Libet
+# Prerequisites: Linux, Python 3, Unidecode Python module.
 # The LCD serial device must be writable and set up correctly.
+# Installation: place this file into ~/.quodlibet/plugins/events
 #
 # To set up the LCD device:
 # 1. load the usbserial and ftdi-sio kernel modules
 # 2. set up the TTY with correct speed, e.g.
 #    /bin/stty -F /dev/serial/matrix_orbital speed 19200 -onlcr
 #
-# Copyright 2018 Olli Helin
-#
-# This software is released under the terms of the
-# GNU General Public License v3: http://www.gnu.org/licenses/gpl-3.0.en.html
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
 
 from enum import Enum
 from gi.repository import Gtk
 from math import floor
+from platform import system
 from quodlibet import _, app
 from quodlibet.plugins import ConfProp, PluginConfig
 from quodlibet.plugins.events import EventPlugin
@@ -90,12 +94,12 @@ class NowPlayingLCDData(object):
             self._disc_info_row_1 = tlalbum
 
         if discnumber is not None:
-            # The 9 in ljust comes from a string such as "Disc 1/9 ".
             self._disc_info_row_2 = \
-                ("Disc " + unidecode(discnumber) + " ").ljust(9)
+                _("Disc") + " " + unidecode(discnumber) + " "
 
         if tracknumber is not None:
-            self._disc_info_row_2 += ("Track " + unidecode(tracknumber)) \
+            self._disc_info_row_2 += \
+                (_("Track") + " " + unidecode(tracknumber)) \
                 .rjust(self._max_width - len(self._disc_info_row_2))
 
     def reset(self):
@@ -234,7 +238,7 @@ class NowPlayingLCDData(object):
             if self._force_refresh:
                 self._force_refresh = False
                 self._parent._reset_lcd()
-                self._parent._write_header_with_text("* now playing *")
+                self._parent._write_header_with_text(_("* now playing *"))
 
             if self._tick_count > self._ticks_in_phase / 2:
                 self._advance_phase()
@@ -265,11 +269,11 @@ class NowPlayingLCDData(object):
 
 class MatrixOrbitalLCD(EventPlugin):
 
-    PLUGIN_ID = 'MatrixOrbitalLCD'
-    PLUGIN_NAME = _('Matrix Orbital LCD')
+    PLUGIN_ID = "MatrixOrbitalLCD"
+    PLUGIN_NAME = "Matrix Orbital LCD"
     PLUGIN_DESC = _("Print info to a Matrix Orbital MX2/MX3 LCD.")
     PLUGIN_ICON = Icons.UTILITIES_TERMINAL
-    PLUGIN_VERSION = '1.0'
+    PLUGIN_VERSION = "1.0"
 
     def align_text2bytes(self, text,
         h_align=Alignment.CENTER, v_align=Alignment.TOP):
@@ -329,37 +333,37 @@ class MatrixOrbitalLCD(EventPlugin):
 
         label = Gtk.Label(label=_("LCD serial device path:"))
         hbox = Gtk.HBox()
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, False, True, 6)
 
         entry = Gtk.Entry()
         entry.set_text(CONFIG.lcd_dev)
         entry.connect("changed", _path_changed)
-        hbox.pack_start(entry, True, True, 0)
+        hbox.pack_start(entry, True, True, 6)
 
         vbox = Gtk.VBox()
-        vbox.pack_start(hbox, False, True, 0)
+        vbox.pack_start(hbox, False, True, 6)
 
         label = Gtk.Label(label=_("LCD device width (characters):"))
         hbox = Gtk.HBox()
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, False, True, 6)
 
         entry = Gtk.Entry()
         entry.set_text(CONFIG.lcd_width)
         entry.connect("changed", _width_changed)
-        hbox.pack_start(entry, True, True, 0)
+        hbox.pack_start(entry, True, True, 6)
 
         vbox.pack_start(hbox, True, True, 0)
 
         label = Gtk.Label(label=_("LCD update interval (ms):"))
         hbox = Gtk.HBox()
-        hbox.pack_start(label, False, True, 0)
+        hbox.pack_start(label, False, True, 6)
 
         entry = Gtk.Entry()
         entry.set_text(CONFIG.lcd_interval)
         entry.connect("changed", _interval_changed)
-        hbox.pack_start(entry, True, True, 0)
+        hbox.pack_start(entry, True, True, 6)
 
-        vbox.pack_start(hbox, True, True, 0)
+        vbox.pack_start(hbox, True, True, 6)
         return vbox
 
     def _failed_initialization(self):
@@ -370,6 +374,10 @@ class MatrixOrbitalLCD(EventPlugin):
         return False
 
     def enabled(self):
+
+        if system() != "Linux":
+            print_e(self.PLUGIN_NAME + " plugin requires a Linux environment.")
+            return
 
         try:
             self._dev = open(CONFIG.lcd_dev, 'wb', buffering=0)
@@ -410,7 +418,7 @@ class MatrixOrbitalLCD(EventPlugin):
         self._reset_lcd()
         self._npld.prevent_update(1)
 
-        self._write_header("Seeking...")
+        self._write_header(_("Seeking..."))
         percent_played = int(round(msec / float(song.get("~#length", 0)) / 10))
 
         # Draw a horizontal bar graph starting at column 1 on row 2
@@ -435,7 +443,7 @@ class MatrixOrbitalLCD(EventPlugin):
             return
 
         self._npld.reset()
-        self._write_header_with_text("* stopped *")
+        self._write_header_with_text(_("* stopped *"))
 
     def plugin_on_paused(self):
 
@@ -443,7 +451,7 @@ class MatrixOrbitalLCD(EventPlugin):
             return
 
         # No need to set pause for trackers manually.
-        self._write_header_with_text("* paused *")
+        self._write_header_with_text(_("* paused *"))
 
     def plugin_on_unpaused(self):
 

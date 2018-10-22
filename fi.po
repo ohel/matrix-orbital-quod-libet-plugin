@@ -1,0 +1,30 @@
+# Finnish translations.
+msgid "Disc"
+msgstr "Levy"
+
+msgid "Track"
+msgstr "Raita"
+
+msgid "Print info to a Matrix Orbital MX2/MX3 LCD."
+msgstr "Tulosta tietoa Matrix Orbital MX2/MX3 LCD:lle."
+
+msgid "LCD serial device path:"
+msgstr "LCD-sarjalaitteen polku:"
+
+msgid "LCD device width (characters):"
+msgstr "LCD-laitteen leveys (merkkiä):"
+
+msgid "LCD update interval (ms):"
+msgstr "LCD:n päivitysintervalli (ms):"
+
+msgid "Seeking..."
+msgstr "Haetaan..."
+
+msgid "* now playing *"
+msgstr "* toistetaan *"
+
+msgid "* stopped *"
+msgstr "* ei toistoa *"
+
+msgid "* paused *"
+msgstr "* katkolla *"
